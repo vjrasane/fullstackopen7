@@ -1,12 +1,16 @@
-const http = require('http')
 const express = require('express')
+const app = express()
+const server = require('http').createServer(app)
+const sockets = require('./utils/sockets')
+sockets.init(server)
+
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const middleware = require('./utils/middleware')
 const mongoose = require('mongoose')
 const morgan = require('morgan');
 
-const blogRouter = require('./controllers/blogs')
+const blogRouter = require('./controllers/blogs')(sockets)
 const userRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 
@@ -21,8 +25,6 @@ mongoose
     console.log(err)
   })
 
-const app = express()
-
 app.use(express.static('build'));
 morgan.token('content', (req) => { return JSON.stringify(req.body) });
 app.use(morgan(':method :url :content :status :res[content-length] - :response-time ms'));
@@ -36,8 +38,6 @@ app.use('/api/users', userRouter)
 app.use('/api/login', loginRouter)
 
 app.use(middleware.error)
-
-const server = http.createServer(app)
 
 server.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`)
