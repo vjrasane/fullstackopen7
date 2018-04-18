@@ -1,15 +1,13 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 
-const User = require('../models/user')
-
 const initUser = async (user) => {
   const saltRounds = 10
-  return new User({
+  return {
     username: user.username,
     password: await bcrypt.hash(user.password, saltRounds),
     major: user.major ? user.major : true
-  })
+  }
 }
 
 const sign = (user) => {

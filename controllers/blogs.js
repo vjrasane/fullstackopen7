@@ -1,8 +1,8 @@
 
 const Blog = require('../models/blog')
 const Comment = require('../models/comment')
-const User = require('../models/user')
 
+const userService = require('../services/users')
 const blogService = require('../services/blogs')
 
 module.exports = (sockets) => {
@@ -27,6 +27,7 @@ module.exports = (sockets) => {
 
   blogRouter.post('/', async (req, res) => {
     const body = req.body
+      console.log(req.body);
     try {
       console.log(req.token);
       if (!req.token || !req.token.id) {
@@ -38,7 +39,7 @@ module.exports = (sockets) => {
         !body.author)
         return res.status(400).json({ error: 'missing fields' })
 
-      const user = await User.findById(req.token.id)
+      const user = await userService.getById(req.token.id)
       if(!user)
         return res.status(400).json({ error: 'inexistent user' })
 
@@ -49,11 +50,13 @@ module.exports = (sockets) => {
       const saved = await blogService.save(blog)
 
       user.blogs = user.blogs.concat(saved._id)
-      await user.save()
+      const updated = await userService.update(user._id, user)
+      sockets.broadcast('user.update', updated)
 
       res.status(201).json(saved)
       sockets.broadcast('blog.create', saved)
     } catch(ex) {
+      console.log(ex);
       if (ex.name === 'JsonWebTokenError' ) {
         res.status(401).json({ error: ex.message })
       } else {
@@ -105,15 +108,24 @@ module.exports = (sockets) => {
       if (!req.token || !req.token.id) {
         return res.status(401).json({ error: 'token missing or invalid' })
       }
-
+      console.log(req.params);
       const blog = await Blog.findById(req.params.id)
+      console.log(blog);
       if(!blog)
         return res.status(400).json({ error: 'inexistent blog' })
 
       if(blog.user && blog.user.toString() !== req.token.id)
         return res.status(401).json({ error: 'cannot remove another user\'s blog' })
 
+      const user = await userService.getById(req.token.id)
+      if(!user)
+        return res.status(400).json({ error: 'inexistent user' })
+
       const removed = await blogService.remove(req.params.id)
+
+      user.blogs = user.blogs.filter(b => b._id !== removed._id)
+      const updated = await userService.update(user._id, user)
+      sockets.broadcast('user.update', updated)
 
       res.status(204).end();
       sockets.broadcast('blog.remove', removed)

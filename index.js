@@ -11,7 +11,7 @@ const mongoose = require('mongoose')
 const morgan = require('morgan');
 
 const blogRouter = require('./controllers/blogs')(sockets)
-const userRouter = require('./controllers/users')
+const userRouter = require('./controllers/users')(sockets)
 const loginRouter = require('./controllers/login')
 
 const config = require('./utils/config')
