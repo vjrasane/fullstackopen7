@@ -15,11 +15,11 @@ describe('when some blogs already exist', async () => {
     await Blog.remove({})
     await User.remove({})
 
-    blogUser = new User(await security.initUser({
+    blogUser = await security.initUser({
       username: 'Teppo Testaaja',
       password: 'passu',
       major: 1
-    }))
+    })
     blogUser = await blogUser.save()
 
     const token = security.sign({ username: blogUser.username, id: blogUser._id })
@@ -121,7 +121,7 @@ describe('when some blogs already exist', async () => {
 
     test('successfully removed', async () => {
       const beforeBlogs = await utils.retrieveBlogs()
-
+      console.log(authHeaders)
       await api
         .delete(`/api/blogs/${addedBlog._id}`)
         .set(authHeaders)

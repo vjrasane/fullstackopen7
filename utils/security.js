@@ -6,7 +6,7 @@ const initUser = async (user) => {
   return {
     username: user.username,
     password: await bcrypt.hash(user.password, saltRounds),
-    major: user.major ? user.major : true
+    major: user.major ? true : false
   }
 }
 

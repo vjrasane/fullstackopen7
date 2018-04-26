@@ -33,7 +33,7 @@ module.exports = (sockets) => {
   })
 
   usersRouter.get('/', async (request, response) => {
-    console.log("get");
+    console.log("get users");
     const users = await userService.getAll()
     console.log(users);
     response.json(users)
